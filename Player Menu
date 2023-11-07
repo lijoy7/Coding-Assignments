@@ -1,0 +1,124 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+enum Position {DEFENDER, MIDFIELDER, FORWARD};
+
+class Player {
+    private String name;
+    private Position position;
+
+    public Player(String name, Position position) {
+        this.name = name;
+        this.position = position;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    @Override
+    public String toString() {
+        return name + ": " + this.position;
+    }
+}
+
+public class TeamManager{
+    private ArrayList<Player> roster = new ArrayList<>();
+
+    public static void main(String[] args) {
+        TeamManager teamManager = new TeamManager();
+        teamManager.run();
+    }
+
+    public void run() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+        	System.out.println();
+            System.out.println("1. Print player list.\n2. Add player to roster.\n3. Remove player from roster.\n4. Change player's position.\n5. Quit.");
+            System.out.print("Enter menu choice: ");
+            int option = scanner.nextInt();
+            scanner.nextLine();  
+            switch (option) {
+                case 1:
+                    printPlayerList();
+                    break;
+                case 2:
+                    addPlayer(scanner);
+                    break;
+                case 3:
+                    removePlayer(scanner);
+                    break;
+                case 4:
+                    changePlayerPosition(scanner);
+                    break;
+                case 5:
+                    return; 
+                default:
+                    System.out.println("Invalid option.");
+            }
+        }
+    }
+
+    private void printPlayerList() {
+        if (roster.isEmpty()) {
+            System.out.println("Nothing to print");
+        } else {
+            for (int i = 0; i < roster.size(); i++) {
+                System.out.println(roster.get(i));
+            }
+        }
+    }
+    
+    private void addPlayer(Scanner scanner) {
+        System.out.print("Enter player name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter player position (1 = DEFENDER, 2 = MIDFIELDER, 3 = FORWARD): ");
+        int pos = scanner.nextInt();
+        if (pos < 1 || pos > 3) {
+            System.out.println("Invalid position.");
+            return;
+        }
+        Position position = Position.values()[pos - 1];
+        roster.add(new Player(name, position));
+    }
+
+    private void removePlayer(Scanner scanner) {
+        System.out.print("Enter name of player to remove:");
+        String name = scanner.nextLine();
+        Player playerToRemove = null;
+        for (Player player : roster) {
+            if (player.getName().equals(name)) {
+                playerToRemove = player;
+                break;
+            }
+        }
+        if (playerToRemove != null) {
+            roster.remove(playerToRemove);
+        } else {
+            System.out.println("Player with name " + name + " does not exist in the roster.");
+        }
+    }
+    
+    private void changePlayerPosition(Scanner scanner) {
+        System.out.print("Enter name of player to reposition: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter new position (1 = DEFENDER, 2 = MIDFIELDER, 3 = FORWARD): ");
+        int pos = scanner.nextInt();
+        if (pos < 1 || pos > 3) {
+            System.out.println("Invalid position.");
+            return;
+        }
+        
+        Position newPosition = Position.values()[pos - 1];
+        for (int i = 0; i < roster.size(); i++) {
+            if (roster.get(i).getName().equals(name)) {
+                roster.get(i).setPosition(newPosition);
+                break;
+            }
+        }
+    }
+}
