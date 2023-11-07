@@ -1,3 +1,4 @@
+// a menu used to print player list, add players, remove players, change player positions, and exit menu.
 import java.util.ArrayList;
 import java.util.Scanner;
 
