@@ -1,2 +1,2 @@
-# CSE114/Coding-Assignments
+#Coding-Assignments
 some old coding assignments
