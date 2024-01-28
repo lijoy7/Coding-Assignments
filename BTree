@@ -1,0 +1,144 @@
+import javax.naming.OperationNotSupportedException;
+import java.util.*;
+
+public class BTree<E extends Comparable<E>> {
+    private Node root;
+    private final int minimumDegree;
+
+    public BTree(int minimumDegree) {
+        if (minimumDegree <= 0) {
+            throw new IllegalArgumentException("Minimum degree must be greater than zero");
+        }
+        this.minimumDegree = minimumDegree;
+        root = new Node();
+    }
+
+    private class Node {
+        int itemCount = 0;
+        List<E> items = new ArrayList<>();
+        List<Node> children = new ArrayList<>();
+
+        @Override
+        public String toString() {
+            return items.toString();
+        }
+    }
+
+    public class NodeAndIndex {
+        private final Node node;
+        private final int index;
+
+        public NodeAndIndex(Node node, int index) {
+            this.node = node;
+            this.index = index;
+        }
+
+        public Node getNode() {
+            return node;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        @Override
+        public String toString() {
+            return "<" + node.toString() + ", " + index + ">";
+        }
+    }
+
+    public void add(E element) throws OperationNotSupportedException {
+        if (root.itemCount == 2 * minimumDegree - 1) {
+            Node oldRoot = root;
+            root = new Node();
+            root.children.add(oldRoot);
+            splitChild(root, 0);
+        }
+        insertNonFull(root, element);
+    }
+
+    private void splitChild(Node parent, int index) throws OperationNotSupportedException {
+        Node fullNode = parent.children.get(index);
+        Node newNode = new Node();
+        parent.children.add(index + 1, newNode);
+        parent.items.add(index, fullNode.items.get(minimumDegree - 1));
+        parent.itemCount++;
+        newNode.items.addAll(fullNode.items.subList(minimumDegree, fullNode.itemCount));
+        fullNode.items = new ArrayList<>(fullNode.items.subList(0, minimumDegree - 1));
+        if (!fullNode.children.isEmpty()) {
+            newNode.children.addAll(fullNode.children.subList(minimumDegree, fullNode.itemCount + 1));
+            fullNode.children = new ArrayList<>(fullNode.children.subList(0, minimumDegree));
+        }
+        fullNode.itemCount = minimumDegree - 1;
+        newNode.itemCount = minimumDegree - 1;
+    }
+
+    private void insertNonFull(Node node, E element) throws OperationNotSupportedException {
+        int index = Collections.binarySearch(node.items, element);
+        if (index < 0) {
+            index = -index - 1;
+        }
+        if (node.children.isEmpty()) {
+            node.items.add(index, element);
+            node.itemCount++;
+        } else {
+            if (node.children.get(index).itemCount == 2 * minimumDegree - 1) {
+                splitChild(node, index);
+                if (element.compareTo(node.items.get(index)) > 0) {
+                    index++;
+                }
+            }
+            insertNonFull(node.children.get(index), element);
+        }
+    }
+
+    public void addAll(Collection<E> elements) throws OperationNotSupportedException {
+        for (E e : elements) this.add(e);
+    }
+
+    public void show() {
+        String nodesep = " ";
+        Queue<Node> queue1 = new LinkedList<>();
+        Queue<Node> queue2 = new LinkedList<>();
+        queue1.add(root);
+        while (true) {
+            while (!queue1.isEmpty()) {
+                Node node = queue1.poll();
+                System.out.printf("%s%s", node.toString(), nodesep);
+                if (!node.children.isEmpty())
+                    queue2.addAll(node.children);
+            }
+            System.out.printf("%n");
+            if (queue2.isEmpty())
+                break;
+            else {
+                queue1 = queue2;
+                queue2 = new LinkedList<>();
+            }
+        }
+    }
+
+    public NodeAndIndex find(E element) {
+        return find(root, element);
+    }
+
+    private NodeAndIndex find(Node node, E element) {
+        if (node == null) {
+            return null;
+        }
+
+        for (int i = 0; i < node.itemCount; i++) {
+            if (element.compareTo(node.items.get(i)) == 0) {
+                return new NodeAndIndex(node, i);
+            } else if (element.compareTo(node.items.get(i)) < 0) {
+                return find(node.children.get(i), element);
+            }
+        }
+
+        if (!node.children.isEmpty()) {
+            return find(node.children.get(node.itemCount), element);
+        }
+
+        return null;
+    }
+}
